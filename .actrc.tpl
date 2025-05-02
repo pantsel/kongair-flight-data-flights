@@ -1,0 +1,8 @@
+--artifact-server-path=.tmp
+--secret-file=act.secrets
+--pull=false
+--action-offline-mode
+--container-architecture=linux/amd64
+--platform=ubuntu-latest=catthehacker/ubuntu:act-latest
+--container-options -v __KUBECONFIG_PATH__:/.kube
+--network=host
