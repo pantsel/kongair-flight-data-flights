@@ -3,6 +3,10 @@ name: Promote API
 on:
   workflow_dispatch:
     inputs:
+      api_folder:
+        description: "Path to the API folder"
+        type: string
+        required: true
       environment:
         description: "Environment to deploy to"
         type: choice
@@ -21,13 +25,13 @@ on:
 env:
   KONNECT_SERVER_URL: https://eu.api.konghq.com
   ENV_FILE: .github/env/${{ inputs.environment }}.yaml
-  API_FOLDER: ${{ github.workspace }}
-  API_SPEC: ${{ github.workspace }}/openapi.yaml
-  API_PLUGINS_FOLDER: ${{ github.workspace }}/kong/plugins
-  API_PATCHES_FOLDER: ${{ github.workspace }}/kong/patches
-  PLATFORM_FOLDER: ${{ github.workspace }}/examples/apiops/platform
+  API_FOLDER: ${{ github.workspace }}/${{ inputs.api_folder }}
+  API_SPEC: ${{ github.workspace }}/${{ inputs.api_folder }}/openapi.yaml
+  API_PLUGINS_FOLDER: ${{ github.workspace }}/${{ inputs.api_folder }}/kong/plugins
+  API_PATCHES_FOLDER: ${{ github.workspace }}/${{ inputs.api_folder }}/kong/patches
+  # PLATFORM_FOLDER: ${{ github.workspace }}/examples/apiops/platform
   BUILD_FOLDER: ${{ github.workspace }}/examples/apiops/.generated
-  TEAMS_REGISTRY: ${{ github.workspace }}/examples/apiops/platform/teams.yaml
+  # TEAMS_REGISTRY: ${{ github.workspace }}/examples/apiops/platform/teams.yaml
   DECK_CONFIG_OIDC_ISSUER: ${{ secrets.OIDC_ISSUER }} # To be used in the OIDC plugin template
 
 jobs:

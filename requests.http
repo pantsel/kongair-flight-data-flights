@@ -1,3 +1,8 @@
+##########################################################################
+# Sample HTTP requests for the Flight Service API
+# This file contains sample HTTP requests to test the Flight Service API.
+##########################################################################
+
 ## Check health of the service
 GET http://localhost:8081/health
 ###
