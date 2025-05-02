@@ -30,7 +30,7 @@ env:
   KONNECT_SERVER_URL: https://eu.api.konghq.com
   ENV_FILE: .github/env/${{ inputs.environment }}.yaml
   API_FOLDER: ${{ github.workspace }}/${{ inputs.api_folder }}
-  API_SPEC: ${{ github.workspace }}/${{ inputs.api_folder }}/openapi.yaml
+  # API_SPEC: ${{ github.workspace }}/${{ inputs.api_folder }}/openapi.yaml
   API_PLUGINS_FOLDER: ${{ github.workspace }}/${{ inputs.api_folder }}/kong/plugins
   API_PATCHES_FOLDER: ${{ github.workspace }}/${{ inputs.api_folder }}/kong/patches
   # PLATFORM_FOLDER: ${{ github.workspace }}/examples/apiops/platform
@@ -66,14 +66,15 @@ jobs:
           sleep 2
         working-directory: ${{ env.API_FOLDER }}
 
-      # - name: Run unit tests
-      #   run: |
-      #     inso --ci run test uts_b5f18c8fb3674ebbabb87351326eba1a -e env_bc58d0e61f -w inso_flights_service_0_1_0.yaml --verbose --reporter progress
+      - name: Export Spec
+        run: |
+          SPEC_ID=$(yq eval '.spec.meta.id' ${{ inputs.inso_workspace }})
+          inso export spec $SPEC_ID -w ${{ inputs.inso_workspace }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
 
       - name: Contract testing flights
         uses: schemathesis/action@v1
         with:
-          schema: ${{ env.API_SPEC }}
+          schema: ${{ env.BUILD_FOLDER }}/oas.yaml
           base-url: http://localhost:8081
           args: '--experimental openapi-3.1 --exclude-checks=ignored_auth'
   
@@ -107,6 +108,13 @@ jobs:
         id: deck-vars
         run: |
 
+          # Export the OpenAPI spec and store it in a variable
+          # This is used to set the API name, version, and other variables as well as the OAS Validation plugin.
+          SPEC_ID=$(yq eval '.spec.meta.id' ${{ inputs.inso_workspace }})
+          inso export spec $SPEC_ID -w ${{ inputs.inso_workspace }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
+          path=${{ env.BUILD_FOLDER }}/oas.yaml
+          echo "API_SPEC=$path" >> $GITHUB_ENV
+          
           api_name=$(yq eval '.info.title' $API_SPEC | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
           api_version=$(yq eval '.info.version' $API_SPEC)
           major_version=$(echo $api_version | cut -d '.' -f 1)
