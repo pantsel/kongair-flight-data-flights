@@ -30,9 +30,13 @@ spec:
     servers:
       - url: https://api.kong-air.com
         description: KongAir API Server
+    tags:
+      - name: flight-data
     paths:
       /health:
         get:
+          tags:
+            - flight-data
           operationId: health
           summary: Health check endpoint for Kubernetes
           description: Endpoint that returns the service health status.
@@ -125,13 +129,11 @@ spec:
                       $ref: "#/components/schemas/Route"
                   examples:
                     lhr-sfo:
-                      value: |
-                        [{
-                           "id": "LHR-SFO",
-                           "origin": "LHR",
-                           "destination": "SFO",
-                           "avg_duration": 660
-                         }]
+                      value:
+                        - id: LHR-SFO
+                          origin: LHR
+                          destination: SFO
+                          avg_duration: 660
     components:
       securitySchemes:
         BasicAuth:
@@ -157,4 +159,4 @@ spec:
   meta:
     id: spc_803c0e715a974ba4955f3727ffc5b5a1
     created: 1746219110576
-    modified: 1746219203671
+    modified: 1746219293067
