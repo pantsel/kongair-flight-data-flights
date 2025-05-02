@@ -61,7 +61,6 @@ security:
 paths:
   /health:
     get:
-      operationId: health
       summary: Health check endpoint for Kubernetes
       description: Endpoint that returns the service health status.
       responses:
