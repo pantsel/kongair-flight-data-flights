@@ -7,3 +7,9 @@ flightsApi:
   containerPort: 8080
   servicePort: 8081
   imagePullPolicy: Never
+
+routesApi:
+  image: kongair/routes-api:latest
+  containerPort: 8081
+  servicePort: 8082
+  imagePullPolicy: Never
