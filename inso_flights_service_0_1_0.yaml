@@ -3,7 +3,7 @@ name: Flights Service 0.1.0
 meta:
   id: wrk_0fc4bf79958c42b1842f4a4cd296bb9d
   created: 1746183695814
-  modified: 1746183695814
+  modified: 1746213099748
 collection:
   - name: flight-data
     meta:
@@ -138,7 +138,7 @@ environments:
       meta:
         id: env_bc58d0e61f594c1fad88c45861b9080e
         created: 1746191610680
-        modified: 1746191622193
+        modified: 1746212594447
         isPrivate: false
         sortKey: 1746191610680
       data:
@@ -387,13 +387,13 @@ spec:
   meta:
     id: spc_7ec41358b377469190e0f1edcdc3741c
     created: 1746183695819
-    modified: 1746183952701
+    modified: 1746213099746
 testSuites:
   - name: New Suite
     meta:
       id: uts_b5f18c8fb3674ebbabb87351326eba1a
       created: 1746184272082
-      modified: 1746184279031
+      modified: 1746213000652
       sortKey: -1746184272082
     tests:
       - name: Returns 200
