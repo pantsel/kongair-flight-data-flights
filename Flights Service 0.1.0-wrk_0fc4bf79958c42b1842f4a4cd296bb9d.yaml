@@ -134,6 +134,19 @@ environments:
         host: api.kong-air.com
         httpUsername: username
         httpPassword: password
+    - name: local
+      meta:
+        id: env_bc58d0e61f594c1fad88c45861b9080e
+        created: 1746191610680
+        modified: 1746191622193
+        isPrivate: false
+        sortKey: 1746191610680
+      data:
+        scheme: http
+        host: localhost:8081
+        httpUsername: username
+        httpPassword: password
+        flightNumber: KA0284
 spec:
   contents:
     openapi: 3.1.0
