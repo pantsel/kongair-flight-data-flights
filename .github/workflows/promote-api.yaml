@@ -74,7 +74,7 @@ jobs:
           # Run unit tests
           inso --ci run test $SPEC_ID -e local -w ${{ inputs.inso_workspace }} --verbose
 
-      - name: Contract testing flights
+      - name: Run Contract Tests
         uses: schemathesis/action@v1
         with:
           schema: ${{ env.BUILD_FOLDER }}/oas.yaml
