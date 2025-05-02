@@ -66,10 +66,13 @@ jobs:
           sleep 2
         working-directory: ${{ env.API_FOLDER }}
 
-      - name: Export Spec
+      - name: Export Spec and Run Tests
         run: |
           SPEC_ID=$(yq eval '.spec.meta.id' ${{ inputs.inso_workspace }})
           inso export spec $SPEC_ID -w ${{ inputs.inso_workspace }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
+          
+          # Run unit tests
+          inso --ci run test $SPEC_ID -e local -w ${{ inputs.inso_workspace }} --verbose
 
       - name: Contract testing flights
         uses: schemathesis/action@v1
@@ -112,11 +115,9 @@ jobs:
           # This is used to set the API name, version, and other variables as well as the OAS Validation plugin.
           SPEC_ID=$(yq eval '.spec.meta.id' ${{ inputs.inso_workspace }})
           inso export spec $SPEC_ID -w ${{ inputs.inso_workspace }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
-          path=${{ env.BUILD_FOLDER }}/oas.yaml
-          echo "API_SPEC=$path" >> $GITHUB_ENV
           
-          api_name=$(yq eval '.info.title' $API_SPEC | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
-          api_version=$(yq eval '.info.version' $API_SPEC)
+          api_name=$(yq eval '.info.title' ${{ env.BUILD_FOLDER }}/oas.yaml | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+          api_version=$(yq eval '.info.version' ${{ env.BUILD_FOLDER }}/oas.yaml)
           major_version=$(echo $api_version | cut -d '.' -f 1)
           team_name="flight-data"
           control_plane_name="${team_name}-cp"
@@ -147,7 +148,7 @@ jobs:
           # The plugin expects the OAS as a JSON string in an environment variable.
           # https://docs.konghq.com/hub/kong-inc/oas-validation/configuration/#config-api_spec
           
-          oas_json=$(yq eval -o=json ${{ env.API_SPEC }} | jq -c .)
+          oas_json=$(yq eval -o=json ${{ env.BUILD_FOLDER }}/oas.yaml | jq -c .)
 
           # Set as env variable
           echo "DECK_CONFIG_API_SPEC=${oas_json}" >> $GITHUB_ENV
