@@ -1,0 +1,9 @@
+_format_version: "1.0"
+
+patches:
+  - selectors:
+    - $.services[?(@.name=="flights-service")]
+    values:
+      host: flight-data-flights-api.flight-data.svc.cluster.local
+      port: 8081
+      protocol: http

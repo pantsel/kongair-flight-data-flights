@@ -1,0 +1,15 @@
+## Check health of the service
+GET http://localhost:8080/health
+###
+
+## Get all flights
+GET http://localhost:8080/flights
+###
+
+## Get flight by flight number
+GET http://localhost:8080/flights/KA0284
+###
+
+## Fetch more details about a flight
+GET http://localhost:8080/flights/KA0284/details
+###
