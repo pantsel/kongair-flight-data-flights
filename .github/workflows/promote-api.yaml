@@ -34,7 +34,7 @@ env:
   API_PLUGINS_FOLDER: ${{ github.workspace }}/${{ inputs.api_folder }}/kong/plugins
   API_PATCHES_FOLDER: ${{ github.workspace }}/${{ inputs.api_folder }}/kong/patches
   # PLATFORM_FOLDER: ${{ github.workspace }}/examples/apiops/platform
-  BUILD_FOLDER: ${{ github.workspace }}/examples/apiops/.generated
+  BUILD_FOLDER: ${{ github.workspace }}/.generated
   # TEAMS_REGISTRY: ${{ github.workspace }}/examples/apiops/platform/teams.yaml
   DECK_CONFIG_OIDC_ISSUER: ${{ secrets.OIDC_ISSUER }} # To be used in the OIDC plugin template
 
