@@ -4,9 +4,13 @@ inputs:
   environment:
     description: "Environment to deploy to"
     required: true
-  api:
+  api_folder:
     description: "Path to the API folder"
     required: true
+  konnect_token:
+    description: "Kong Konnect token"
+    required: true
+
 outputs:
   api_name:
     description: "API name"
@@ -32,9 +36,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
+  
     - uses: kong/setup-deck@v1
       with:
         version: latest
@@ -43,41 +45,62 @@ runs:
       with:
         inso-version: 11.0.2
 
-    - name: Setup decK variables
-      id: deck-vars
+    - name: Setup variables
       shell: bash
       run: |
-        SPEC_ID=$(yq eval '.spec.meta.id' ${{ env.INSOMNIA_FILE }})
-        inso export spec $SPEC_ID -w ${{ env.INSOMNIA_FILE }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
+        # Extract the Spec ID from the Insomnia configuration
+        SPEC_ID=$(yq eval '.spec.meta.id' "${{ inputs.api_folder }}/insomnia.yaml")
         
-        api_name=$(yq eval '.info.title' ${{ env.BUILD_FOLDER }}/oas.yaml | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
-        api_version=$(yq eval '.info.version' ${{ env.BUILD_FOLDER }}/oas.yaml)
-        major_version=$(echo $api_version | cut -d '.' -f 1)
-        team_name="flight-data"
+        # Define build folder and export the OpenAPI spec
+        build_folder="${{ github.workspace }}/.generated"
+        mkdir -p "$build_folder"
+        inso export spec "$SPEC_ID" -w "${{ inputs.api_folder }}/insomnia.yaml" -o "$build_folder/oas.yaml"
+        
+        # Extract API metadata from the OpenAPI spec
+        api_name=$(yq eval '.info.title' "$build_folder/oas.yaml" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+        api_version=$(yq eval '.info.version' "$build_folder/oas.yaml")
+        major_version=$(echo "$api_version" | cut -d '.' -f 1)
+        
+        # Define additional variables
+        team_name="${{ env.TEAM_NAME }}"
         control_plane_name="${team_name}-cp"
         system_account="sa-${control_plane_name}-admin"
-
+        platform_folder="${{ github.action_path }}/platform"
+        namespace_path_prefix="/$api_name"
+        
+        # Export variables to the GitHub environment
         echo "DECK_API_NAME=$api_name" >> $GITHUB_ENV
         echo "DECK_API_VERSION=$api_version" >> $GITHUB_ENV
         echo "DECK_API_MAJOR_VERSION=v$major_version" >> $GITHUB_ENV
         echo "DECK_TEAM_NAME=$team_name" >> $GITHUB_ENV
-        echo "DECK_CONFIG_NAMESPACE_PATH_PREFIX=/$api_name" >> $GITHUB_ENV
+        echo "DECK_CONFIG_NAMESPACE_PATH_PREFIX=$namespace_path_prefix" >> $GITHUB_ENV
         echo "CONTROL_PLANE_NAME=$control_plane_name" >> $GITHUB_ENV
         echo "SYSTEM_ACCOUNT=$system_account" >> $GITHUB_ENV
+        echo "SPEC_ID=$SPEC_ID" >> $GITHUB_ENV
+        echo "BUILD_FOLDER=$build_folder" >> $GITHUB_ENV
+        echo "PLATFORM_FOLDER=$platform_folder" >> $GITHUB_ENV
+        echo "KONNECT_SERVER_URL=https://eu.api.konghq.com" >> $GITHUB_ENV
+        echo "API_PLUGINS_FOLDER=${{ inputs.api_folder }}/kong/plugins" >> $GITHUB_ENV
+        echo "API_PATCHES_FOLDER=${{ inputs.api_folder }}/kong/patches" >> $GITHUB_ENV
 
-        echo "api_name=$api_name" >> $GITHUB_OUTPUT
-        echo "api_major_version=v$major_version" >> $GITHUB_OUTPUT
-        echo "api_namespace=/$api_name" >> $GITHUB_OUTPUT
-        echo "team_name=$team_name" >> $GITHUB_OUTPUT
-        echo "control_plane_name=$control_plane_name" >> $GITHUB_OUTPUT
-        echo "system_account=$system_account" >> $GITHUB_OUTPUT
+    # This step is only pertinent if you are using OAS Validation plugin
+    - name: Read OAS into an environment variable
+      id: read-oas
+      shell: bash
+      run: |
+        # Read the YAML file and convert to JSON string to be used with the OAS Validation plugin down the line.
+        # The plugin expects the OAS as a JSON string in an environment variable.
+        # https://docs.konghq.com/hub/kong-inc/oas-validation/configuration/#config-api_spec
+        
+        oas_json=$(yq eval -o=json ${{ env.BUILD_FOLDER }}/oas.yaml | jq -c .)
+
+        # Set as env variable
+        echo "DECK_CONFIG_API_SPEC=${oas_json}" >> $GITHUB_ENV
 
     - name: Lint OpenAPI Spec
       shell: bash
       run: |
-        SPEC_ID=$(yq eval '.spec.meta.id' ${{ env.INSOMNIA_FILE }})
-        inso lint spec $SPEC_ID -w ${{ env.INSOMNIA_FILE }} --verbose
-        inso export spec $SPEC_ID -w ${{ env.INSOMNIA_FILE }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
+        inso lint spec $SPEC_ID -w ${{ inputs.api_folder }}/insomnia.yaml --verbose
 
     - name: Convert OAS to Kong
       shell: bash
@@ -102,17 +125,19 @@ runs:
       run: cat kong.yaml | deck file namespace --path-prefix=$DECK_CONFIG_NAMESPACE_PATH_PREFIX -o kong.yaml
       working-directory: ${{ env.BUILD_FOLDER }}
 
-  #     - name: Add Platform level plugins
-  #       run: |
-  #         cat kong.yaml | deck file add-plugins \
-  #           $PLATFORM_FOLDER/kong/plugins/*.yaml -o kong.yaml
-  #       working-directory: ${{ env.BUILD_FOLDER }}
+    - name: Add Platform level plugins
+      shell: bash
+      run: |
+        cat kong.yaml | deck file add-plugins \
+          $PLATFORM_FOLDER/kong/plugins/*.yaml -o kong.yaml
+      working-directory: ${{ env.BUILD_FOLDER }}
 
-  #     - name: Apply Platform level patches
-  #       run: |
-  #         cat kong.yaml | deck file patch \
-  #           $PLATFORM_FOLDER/kong/patches/*.yaml -o kong.yaml
-  #       working-directory: ${{ env.BUILD_FOLDER }}
+    - name: Apply Platform level patches
+      shell: bash
+      run: |
+        cat kong.yaml | deck file patch \
+          $PLATFORM_FOLDER/kong/patches/*.yaml -o kong.yaml
+      working-directory: ${{ env.BUILD_FOLDER }}
 
     - name: Add Tags
       shell: bash
@@ -127,9 +152,10 @@ runs:
           -o kong.yaml
       working-directory: ${{ env.BUILD_FOLDER }}
 
-      # - name: Lint Config
-      #   run: deck file lint -s kong.yaml ${{ env.PLATFORM_FOLDER }}/kong.ruleset.yaml;
-      #   working-directory: ${{ env.BUILD_FOLDER }}
+    - name: Lint Config
+      shell: bash
+      run: deck file lint -s kong.yaml ${{ env.PLATFORM_FOLDER }}/kong.ruleset.yaml;
+      working-directory: ${{ env.BUILD_FOLDER }}
 
     - name: Debug Config
       shell: bash
@@ -149,13 +175,12 @@ runs:
           --select-tag $DECK_API_MAJOR_VERSION \
           --select-tag generated_by:deck \
           --konnect-addr="${{ env.KONNECT_SERVER_URL }}" \
-          --konnect-token="${{ secrets.KONNECT_PAT }}" \
+          --konnect-token="${{ inputs.konnect_token }}" \
           --konnect-control-plane-name="${{ env.CONTROL_PLANE_NAME }}" > kong_diff.txt
       working-directory: ${{ env.BUILD_FOLDER }}
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
-      shell: bash
       with:
         name: config
         path: |

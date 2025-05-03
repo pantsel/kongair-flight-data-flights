@@ -26,129 +26,67 @@ on:
         default: http://localhost
 
 env:
-  KONNECT_SERVER_URL: https://eu.api.konghq.com
-  ENV_FILE: .github/env/${{ inputs.environment }}.yaml
+  TEAM_NAME: flight-data
   API_FOLDER: ${{ github.workspace }}/apis/${{ inputs.api }}
-  API_PLUGINS_FOLDER: ${{ github.workspace }}/apis/${{ inputs.api }}/kong/plugins
-  API_PATCHES_FOLDER: ${{ github.workspace }}/apis/${{ inputs.api }}/kong/patches
-  INSOMNIA_FILE: ${{ github.workspace }}/apis/${{ inputs.api }}/insomnia.yaml
-  # PLATFORM_FOLDER: ${{ github.workspace }}/examples/apiops/platform
-  BUILD_FOLDER: ${{ github.workspace }}/.generated
-  # TEAMS_REGISTRY: ${{ github.workspace }}/examples/apiops/platform/teams.yaml
-  DECK_CONFIG_OIDC_ISSUER: ${{ secrets.OIDC_ISSUER }} # To be used in the OIDC plugin template
+  SYSTEM_ACCOUNT: sa-flight-data-cp-admin
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    name: Prepare Config
+    outputs:
+      system_account_token: ${{ steps.set-output.outputs.SYSTEM_ACCOUNT_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Import system account Token from Vault
+        id: import-token
+        uses: hashicorp/vault-action@v2
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          token: ${{ secrets.VAULT_TOKEN }}
+          secrets: |
+            secret/data/system-accounts/${{ env.SYSTEM_ACCOUNT }} token | SYSTEM_ACCOUNT_TOKEN ;
+      
+      - name: Setup Output variables
+        id: set-output
+        run: |
+          echo "SYSTEM_ACCOUNT_TOKEN=${{ steps.import-token.outputs.SYSTEM_ACCOUNT_TOKEN }}" >> $GITHUB_OUTPUT
+
+
   build:
     runs-on: ubuntu-latest
-    # needs: contract-test
     name: Build Config
+    needs: prepare
     environment: ${{ inputs.environment }}
-    # outputs:
-    #   api_name: ${{ steps.deck-vars.outputs.api_name }}
-    #   api_version: ${{ steps.deck-vars.outputs.api_version }}
-    #   api_major_version: ${{ steps.deck-vars.outputs.api_major_version }}
-    #   api_namespace: ${{ steps.deck-vars.outputs.api_namespace }}
-    #   team_name: ${{ steps.deck-vars.outputs.team_name }}
-    #   control_plane_name: ${{ steps.deck-vars.outputs.control_plane_name }}
-    #   system_account: ${{ steps.deck-vars.outputs.system_account }}
-
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Build Config
+        id: build
         uses: ./.github/actions/build
         with:
           environment: ${{ inputs.environment }}
-          api: ${{ inputs.api }}
+          api_folder: ${{ env.API_FOLDER }}
+          konnect_token: ${{ needs.prepare.outputs.system_account_token }}
 
   deploy:
       name: Deploy Config
       runs-on: ubuntu-latest
-      needs: build
+      needs: 
+        - build
+        - prepare
       environment: ${{ inputs.environment }}
       steps:
         - name: Checkout repository
           uses: actions/checkout@v4
 
-        - uses: kong/setup-deck@v1
-
-        - uses: kong/setup-inso@v2
+        - uses: ./.github/actions/deploy
           with:
-            inso-version: 11.0.2
-
-        - name: Download Artifacts
-          uses: actions/download-artifact@v4
-          with:
-            name: config
-            path: ${{ env.BUILD_FOLDER }}
-
-        - name: Get Control Plane Backup
-          run: |
-            deck gateway dump \
-              --yes \
-              --with-id \
-              --select-tag generated_by:deck \
-              --konnect-addr="${{ env.KONNECT_SERVER_URL }}" \
-              --konnect-token="${{ secrets.KONNECT_PAT }}" \
-              --konnect-control-plane-name="${{ needs.build.outputs.control_plane_name }}" -o kong_backup.yaml
-          working-directory: ${{ env.BUILD_FOLDER }}
-    
-        - name: Sync Config
-          id: sync
-          run: |
-            deck gateway sync kong.yaml  \
-              --select-tag ${{ needs.build.outputs.api_name }} \
-              --select-tag ${{ needs.build.outputs.api_major_version }} \
-              --select-tag generated_by:deck \
-              --konnect-addr="${{ env.KONNECT_SERVER_URL }}" \
-              --konnect-token="${{ secrets.KONNECT_PAT }}" \
-              --konnect-control-plane-name="${{ needs.build.outputs.control_plane_name }}"
-          working-directory: ${{ env.BUILD_FOLDER }}
-          continue-on-error: true
-
-        - name: Export Api Spec
-          run: |
-            SPEC_ID=$(yq eval '.spec.meta.id' ${{ env.INSOMNIA_FILE }})
-            inso export spec $SPEC_ID -w ${{ env.INSOMNIA_FILE }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
-          working-directory: ${{ env.BUILD_FOLDER }}
-
-        # https://github.com/schemathesis/schemathesis
-        - name: Run Contract Tests Against the Gateway
-          uses: schemathesis/action@v1
-          if: steps.sync.outcome == 'success'
-          id: tests
-          with:
-            schema: ${{ env.BUILD_FOLDER }}/oas.yaml
-            base-url: ${{ inputs.gateway_url }}${{ needs.build.outputs.api_namespace }}
-            checks: all
-            args: '--auth ${{ secrets.OIDC_CLIENT_ID }}:${{ secrets.OIDC_CLIENT_SECRET }} --experimental openapi-3.1 --method=GET'
-          continue-on-error: true
-
-        - name: Rollback Config
-          if: steps.tests.outcome == 'failure' || steps.sync.outcome == 'failure'
-          run: |
-            echo "Tests failed. Rolling back configuration..."
-            deck gateway sync kong_backup.yaml  \
-              --select-tag generated_by:deck \
-              --konnect-addr="${{ env.KONNECT_SERVER_URL }}" \
-              --konnect-token="${{ secrets.KONNECT_PAT }}" \
-              --konnect-control-plane-name="${{ needs.build.outputs.control_plane_name }}"
-          working-directory: ${{ env.BUILD_FOLDER }}
-
-        - name: Get a fresh backup
-          if: steps.tests.outcome == 'success' || steps.sync.outcome == 'skipped'
-          run: |
-            deck gateway dump \
-              --yes \
-              --with-id \
-              --select-tag generated_by:deck \
-              --konnect-addr="${{ env.KONNECT_SERVER_URL }}" \
-              --konnect-token="${{ secrets.KONNECT_PAT }}" \
-              --konnect-control-plane-name="${{ needs.build.outputs.control_plane_name }}" -o kong_backup.yaml
-          working-directory: ${{ env.BUILD_FOLDER }}
-
-        - name: Archive artifacts
-          uses: actions/upload-artifact@v4
-          with:
-            name: artifacts
-            path: |
-              ${{ env.BUILD_FOLDER }}/kong_backup.yaml
-              ${{ env.BUILD_FOLDER }}/kong.yaml
+            environment: ${{ inputs.environment }}
+            api_folder: ${{ env.API_FOLDER }}
+            konnect_token: ${{ needs.prepare.outputs.system_account_token }}
+            client_id: ${{ secrets.OIDC_CLIENT_ID }}
+            client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
