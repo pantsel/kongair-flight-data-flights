@@ -1,0 +1,9 @@
+releaseName: flight-data-apis-routes-api
+
+namespace: flight-data
+
+routesApi:
+  image: kongair/routes-api:latest
+  containerPort: 8081
+  servicePort: 8082
+  imagePullPolicy: Never

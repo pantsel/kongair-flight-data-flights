@@ -8,18 +8,22 @@ on:
         required: true
         type: string
         default: 'deploy' # 'deploy' or 'destroy'
+      api:
+        description: 'API to deploy'
+        required: true
+        type: choice
+        options:
+          - flights-api
+          - routes-api
       namespace:
         description: 'Kubernetes namespace'
-        type: string
-        default: 'flight-data'
-      release_name:
-        description: 'Helm release name'
         type: string
         default: 'flight-data'
 
 env:
   NAMESPACE: ${{ inputs.namespace }}
-  RELEASE_NAME: ${{ inputs.release_name }}
+  RELEASE_NAME: flight-data-${{ inputs.api }}
+  CHART_FOLDER: ${{ github.workspace }}/k8s/${{ inputs.api }}
   KUBECONFIG: /.kube/config
 
 jobs:
@@ -56,13 +60,13 @@ jobs:
             -n $NAMESPACE \
             -f values.yaml \
             --set releaseName=$RELEASE_NAME
-        working-directory: ${{ github.workspace }}/k8s
+        working-directory: ${{ env.CHART_FOLDER }}
 
       - name: Destroy Example API
         if: ${{ inputs.action == 'destroy' }}
         run: |
           helm uninstall $RELEASE_NAME -n $NAMESPACE --ignore-not-found=true
-        working-directory: ${{ github.workspace }}/k8s
+        working-directory: ${{ env.CHART_FOLDER }}
 
       - name: Cleanup namespace
         if: ${{ inputs.action == 'destroy' }}

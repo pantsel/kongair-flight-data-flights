@@ -16,7 +16,7 @@ spec:
       containers:
         - name: routes-api
           image: {{ .Values.routesApi.image }}
-          imagePullPolicy: {{ .Values.flightsApi.imagePullPolicy }}
+          imagePullPolicy: {{ .Values.routesApi.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.routesApi.containerPort }}
 ---
