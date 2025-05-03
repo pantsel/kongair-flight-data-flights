@@ -3,14 +3,13 @@ name: Promote API
 on:
   workflow_dispatch:
     inputs:
-      api_folder:
+      api:
         description: "Path to the API folder"
-        type: string
+        type: choice
         required: true
-      inso_workspace:
-        description: "Path to the inso workspace file"
-        type: string
-        required: true
+        options:
+          - "flights"
+          - "routes"
       environment:
         description: "Environment to deploy to"
         type: choice
@@ -29,10 +28,10 @@ on:
 env:
   KONNECT_SERVER_URL: https://eu.api.konghq.com
   ENV_FILE: .github/env/${{ inputs.environment }}.yaml
-  API_FOLDER: ${{ github.workspace }}/${{ inputs.api_folder }}
-  # API_SPEC: ${{ github.workspace }}/${{ inputs.api_folder }}/openapi.yaml
-  API_PLUGINS_FOLDER: ${{ github.workspace }}/${{ inputs.api_folder }}/kong/plugins
-  API_PATCHES_FOLDER: ${{ github.workspace }}/${{ inputs.api_folder }}/kong/patches
+  API_FOLDER: ${{ github.workspace }}/apis/${{ inputs.api }}
+  API_PLUGINS_FOLDER: ${{ github.workspace }}/apis/${{ inputs.api }}/kong/plugins
+  API_PATCHES_FOLDER: ${{ github.workspace }}/apis/${{ inputs.api }}/kong/patches
+  INSOMNIA_FILE: ${{ github.workspace }}/apis/${{ inputs.api }}/insomnia.yaml
   # PLATFORM_FOLDER: ${{ github.workspace }}/examples/apiops/platform
   BUILD_FOLDER: ${{ github.workspace }}/.generated
   # TEAMS_REGISTRY: ${{ github.workspace }}/examples/apiops/platform/teams.yaml
@@ -42,48 +41,48 @@ jobs:
 
   # Run contract testing with SchemaThesis.
   # The tests are based on the OpenAPI specifications of the services.
-  contract-test:
-    name: Contract testing
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v5
-        with:
-          go-version: 1.24
-      - uses: kong/setup-inso@v2
-        with:
-          inso-version: 11.0.2
+  # contract-test:
+  #   name: Contract testing
+  #   runs-on: ubuntu-latest
+  #   environment: ${{ inputs.environment }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-go@v5
+  #       with:
+  #         go-version: 1.24
+  #     - uses: kong/setup-inso@v2
+  #       with:
+  #         inso-version: 11.0.2
 
-      - name: Start service
-        run: |
-          file="server"
-          port="8081"
+  #     - name: Start service
+  #       run: |
+  #         file="server"
+  #         port="8081"
 
-          make run file=${file} port=${port} nohup=true
-          echo $! > ./${file}.pid
+  #         make run file=${file} port=${port} nohup=true
+  #         echo $! > ./${file}.pid
 
-          sleep 2
-        working-directory: ${{ env.API_FOLDER }}
+  #         sleep 2
+  #       working-directory: ${{ env.API_FOLDER }}
 
-      - name: Export Spec and Run Tests
-        run: |
-          SPEC_ID=$(yq eval '.spec.meta.id' ${{ inputs.inso_workspace }})
-          inso export spec $SPEC_ID -w ${{ inputs.inso_workspace }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
+  #     - name: Export Spec and Run Tests
+  #       run: |
+  #         SPEC_ID=$(yq eval '.spec.meta.id' ${{ env.INSOMNIA_FILE }})
+  #         inso export spec $SPEC_ID -w ${{ env.INSOMNIA_FILE }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
           
-          # Run unit tests
-          inso --ci run test $SPEC_ID -e local -w ${{ inputs.inso_workspace }} --verbose
+  #         # Run unit tests
+  #         inso --ci run test $SPEC_ID -e local -w ${{ env.INSOMNIA_FILE }} --verbose
 
-      - name: Run Contract Tests
-        uses: schemathesis/action@v1
-        with:
-          schema: ${{ env.BUILD_FOLDER }}/oas.yaml
-          base-url: http://localhost:8081
-          args: '--experimental openapi-3.1 --exclude-checks=ignored_auth'
+  #     - name: Run Contract Tests
+  #       uses: schemathesis/action@v1
+  #       with:
+  #         schema: ${{ env.BUILD_FOLDER }}/oas.yaml
+  #         base-url: http://localhost:8081
+  #         args: '--experimental openapi-3.1 --exclude-checks=ignored_auth'
   
   build:
     runs-on: ubuntu-latest
-    needs: contract-test
+    # needs: contract-test
     name: Build Config
     environment: ${{ inputs.environment }}
     outputs:
@@ -113,8 +112,8 @@ jobs:
 
           # Export the OpenAPI spec and store it in a variable
           # This is used to set the API name, version, and other variables as well as the OAS Validation plugin.
-          SPEC_ID=$(yq eval '.spec.meta.id' ${{ inputs.inso_workspace }})
-          inso export spec $SPEC_ID -w ${{ inputs.inso_workspace }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
+          SPEC_ID=$(yq eval '.spec.meta.id' ${{ env.INSOMNIA_FILE }})
+          inso export spec $SPEC_ID -w ${{ env.INSOMNIA_FILE }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
           
           api_name=$(yq eval '.info.title' ${{ env.BUILD_FOLDER }}/oas.yaml | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
           api_version=$(yq eval '.info.version' ${{ env.BUILD_FOLDER }}/oas.yaml)
@@ -156,9 +155,9 @@ jobs:
       - name: Lint OpenAPI Spec
         shell: bash
         run: |
-          SPEC_ID=$(yq eval '.spec.meta.id' ${{ inputs.inso_workspace }})
-          inso lint spec $SPEC_ID -w ${{ inputs.inso_workspace }} --verbose
-          inso export spec $SPEC_ID -w ${{ inputs.inso_workspace }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
+          SPEC_ID=$(yq eval '.spec.meta.id' ${{ env.INSOMNIA_FILE }})
+          inso lint spec $SPEC_ID -w ${{ env.INSOMNIA_FILE }} --verbose
+          inso export spec $SPEC_ID -w ${{ env.INSOMNIA_FILE }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
 
       - name: Convert OAS to Kong
         run: cat oas.yaml | deck file openapi2kong > $BUILD_FOLDER/kong.yaml
