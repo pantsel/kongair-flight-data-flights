@@ -144,7 +144,6 @@ environments:
       data:
         scheme: http
         host: localhost:8081
-        base_path: ""
         httpUsername: username
         httpPassword: password
         flightNumber: KA0284
