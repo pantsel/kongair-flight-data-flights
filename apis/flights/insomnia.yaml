@@ -143,7 +143,6 @@ environments:
         sortKey: 1746272851233
       data:
         scheme: http
-        base_path: ""
         host: localhost:8081
         httpUsername: username
         httpPassword: password
