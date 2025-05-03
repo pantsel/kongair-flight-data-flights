@@ -287,7 +287,7 @@ spec:
                           scheduled_arrival: 2024-03-21T19:12:28Z
             "401":
               description: Unauthorized
-      "/flights/{flightNumber}":
+      /flights/{flightNumber}:
         get:
           summary: Get a specific flight by flight number
           description: |
@@ -335,7 +335,7 @@ spec:
                     properties:
                       message:
                         type: string
-      "/flights/{flightNumber}/details":
+      /flights/{flightNumber}/details:
         get:
           summary: Fetch more details about a flight
           description: Fetch more details about a flight

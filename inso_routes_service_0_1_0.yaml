@@ -61,7 +61,7 @@ spec:
                       status:
                         type: string
                         example: unhealthy
-      "/routes/{id}":
+      /routes/{id}:
         get:
           summary: Request a specific KongAir route by id (LHR-SIN)
           description: |
