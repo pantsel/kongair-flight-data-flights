@@ -19,11 +19,6 @@ on:
           - "tst"
           - "acc"
           - "prd"
-      gateway_url:
-        description: "Kong Gateway URL"
-        type: string
-        required: true
-        default: http://localhost
 
 env:
   TEAM_NAME: flight-data
@@ -53,7 +48,6 @@ jobs:
         id: set-output
         run: |
           echo "SYSTEM_ACCOUNT_TOKEN=${{ steps.import-token.outputs.SYSTEM_ACCOUNT_TOKEN }}" >> $GITHUB_OUTPUT
-
 
   build:
     runs-on: ubuntu-latest
