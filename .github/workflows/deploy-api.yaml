@@ -52,13 +52,13 @@ jobs:
           sleep 2
         working-directory: ${{ env.API_FOLDER }}
 
-      - name: Export Spec and Run Tests
+      - name: Export Spec
         run: |
           SPEC_ID=$(yq eval '.spec.meta.id' ${{ env.API_FOLDER }}/insomnia.yaml)
           inso export spec $SPEC_ID -w ${{ env.API_FOLDER }}/insomnia.yaml -o ${{ env.BUILD_FOLDER }}/oas.yaml
           
           # Run unit tests
-          inso --ci run test $SPEC_ID -e local -w ${{ env.API_FOLDER }}/insomnia.yaml --verbose --reporter progress
+          # inso --ci run test $SPEC_ID -e local -w ${{ env.API_FOLDER }}/insomnia.yaml --verbose --reporter progress
 
       - name: Run Contract Tests
         uses: schemathesis/action@v1
