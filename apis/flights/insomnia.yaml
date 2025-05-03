@@ -138,11 +138,12 @@ environments:
       meta:
         id: env_5a0b050c97364f03881766595d0379f7
         created: 1746272851233
-        modified: 1746272915723
+        modified: 1746273288782
         isPrivate: false
         sortKey: 1746272851233
       data:
         scheme: http
+        base_path: /
         host: localhost:8081
         httpUsername: username
         httpPassword: password
