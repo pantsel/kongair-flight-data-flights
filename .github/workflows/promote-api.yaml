@@ -202,6 +202,10 @@ jobs:
 
         - uses: kong/setup-deck@v1
 
+        - uses: kong/setup-inso@v2
+          with:
+            inso-version: 11.0.2
+
         - name: Download Artifacts
           uses: actions/download-artifact@v4
           with:
@@ -232,45 +236,51 @@ jobs:
           working-directory: ${{ env.BUILD_FOLDER }}
           continue-on-error: true
 
+        - name: Export Api Spec
+          run: |
+            SPEC_ID=$(yq eval '.spec.meta.id' ${{ env.INSOMNIA_FILE }})
+            inso export spec $SPEC_ID -w ${{ env.INSOMNIA_FILE }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
+          working-directory: ${{ env.BUILD_FOLDER }}
+
         # https://github.com/schemathesis/schemathesis
-        # - name: Run Contract Tests Against the Gateway
-        #   uses: schemathesis/action@v1
-        #   if: steps.sync.outcome == 'success'
-        #   id: tests
-        #   with:
-        #     schema: ${{ env.API_SPEC}}
-        #     base-url: ${{ inputs.gateway_url }}${{ needs.build.outputs.api_namespace }}
-        #     checks: all
-        #     args: '--auth ${{ secrets.OIDC_CLIENT_ID }}:${{ secrets.OIDC_CLIENT_SECRET }} --experimental openapi-3.1 --method=GET'
-        #   continue-on-error: true
+        - name: Run Contract Tests Against the Gateway
+          uses: schemathesis/action@v1
+          if: steps.sync.outcome == 'success'
+          id: tests
+          with:
+            schema: ${{ env.BUILD_FOLDER }}/oas.yaml
+            base-url: ${{ inputs.gateway_url }}${{ needs.build.outputs.api_namespace }}
+            checks: all
+            args: '--auth ${{ secrets.OIDC_CLIENT_ID }}:${{ secrets.OIDC_CLIENT_SECRET }} --experimental openapi-3.1 --method=GET'
+          continue-on-error: true
 
-        # - name: Rollback Config
-        #   if: steps.tests.outcome == 'failure' || steps.sync.outcome == 'failure'
-        #   run: |
-        #     echo "Tests failed. Rolling back configuration..."
-        #     deck gateway sync kong_backup.yaml  \
-        #       --select-tag generated_by:deck \
-        #       --konnect-addr="${{ env.KONNECT_SERVER_URL }}" \
-        #       --konnect-token="${{ secrets.KONNECT_PAT }}" \
-        #       --konnect-control-plane-name="${{ needs.build.outputs.control_plane_name }}"
-        #   working-directory: ${{ env.BUILD_FOLDER }}
+        - name: Rollback Config
+          if: steps.tests.outcome == 'failure' || steps.sync.outcome == 'failure'
+          run: |
+            echo "Tests failed. Rolling back configuration..."
+            deck gateway sync kong_backup.yaml  \
+              --select-tag generated_by:deck \
+              --konnect-addr="${{ env.KONNECT_SERVER_URL }}" \
+              --konnect-token="${{ secrets.KONNECT_PAT }}" \
+              --konnect-control-plane-name="${{ needs.build.outputs.control_plane_name }}"
+          working-directory: ${{ env.BUILD_FOLDER }}
 
-        # - name: Get a fresh backup
-        #   if: steps.tests.outcome == 'success' || steps.sync.outcome == 'skipped'
-        #   run: |
-        #     deck gateway dump \
-        #       --yes \
-        #       --with-id \
-        #       --select-tag generated_by:deck \
-        #       --konnect-addr="${{ env.KONNECT_SERVER_URL }}" \
-        #       --konnect-token="${{ secrets.KONNECT_PAT }}" \
-        #       --konnect-control-plane-name="${{ needs.build.outputs.control_plane_name }}" -o kong_backup.yaml
-        #   working-directory: ${{ env.BUILD_FOLDER }}
+        - name: Get a fresh backup
+          if: steps.tests.outcome == 'success' || steps.sync.outcome == 'skipped'
+          run: |
+            deck gateway dump \
+              --yes \
+              --with-id \
+              --select-tag generated_by:deck \
+              --konnect-addr="${{ env.KONNECT_SERVER_URL }}" \
+              --konnect-token="${{ secrets.KONNECT_PAT }}" \
+              --konnect-control-plane-name="${{ needs.build.outputs.control_plane_name }}" -o kong_backup.yaml
+          working-directory: ${{ env.BUILD_FOLDER }}
 
-        # - name: Archive artifacts
-        #   uses: actions/upload-artifact@v4
-        #   with:
-        #     name: artifacts
-        #     path: |
-        #       ${{ env.BUILD_FOLDER }}/kong_backup.yaml
-        #       ${{ env.BUILD_FOLDER }}/kong.yaml
+        - name: Archive artifacts
+          uses: actions/upload-artifact@v4
+          with:
+            name: artifacts
+            path: |
+              ${{ env.BUILD_FOLDER }}/kong_backup.yaml
+              ${{ env.BUILD_FOLDER }}/kong.yaml
