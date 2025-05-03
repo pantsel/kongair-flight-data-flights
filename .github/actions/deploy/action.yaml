@@ -29,6 +29,35 @@ runs:
       with:
         inso-version: 11.0.2
 
+    - name: Source environment variables
+      id: source-env
+      shell: bash
+      run: |
+        echo "::group::Sourcing environment variable files"
+
+        files=(
+          "${{ github.action_path }}/env/common.sh"
+          "${{ github.action_path }}/env/${{ inputs.environment }}.sh"
+        )
+
+        for file in "${files[@]}"; do
+          if [ -f "$file" ]; then
+            echo "Sourcing $file"
+            set -a
+            source "$file"
+            set +a
+          else
+            echo "No environment file found for $file. Skipping."
+          fi
+        done
+
+        # Export final values of DECK_ variables to GITHUB_ENV
+        while IFS='=' read -r key value; do
+          echo "$key=$value" >> "$GITHUB_ENV"
+        done < <(env)
+
+        echo "::endgroup::"
+
     - name: Setup variables
       shell: bash
       run: |
@@ -106,7 +135,7 @@ runs:
       id: tests
       with:
         schema: ${{ env.BUILD_FOLDER }}/oas.yaml
-        base-url: http://localhost${{ env.DECK_CONFIG_NAMESPACE_PATH_PREFIX }}
+        base-url: ${{ env.GATEWAY_URL }}${{ env.DECK_CONFIG_NAMESPACE_PATH_PREFIX }}
         checks: all
         args: '--auth ${{ inputs.client_id }}:${{ inputs.client_secret }} --experimental openapi-3.1 --method=GET'
       continue-on-error: true
