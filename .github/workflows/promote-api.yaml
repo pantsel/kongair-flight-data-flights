@@ -60,7 +60,7 @@ jobs:
 
       - name: Build Config
         id: build
-        uses: ./external-actions/build
+        uses: ./platform-actions/build-kong-config
         with:
           environment: ${{ inputs.environment }}
           api_folder: ${{ env.API_FOLDER }}
@@ -77,7 +77,7 @@ jobs:
         - name: Checkout repository
           uses: actions/checkout@v4
 
-        - uses: ./external-actions/deploy
+        - uses: ./platform-actions/apply-kong-config
           with:
             environment: ${{ inputs.environment }}
             api_folder: ${{ env.API_FOLDER }}
