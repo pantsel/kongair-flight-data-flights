@@ -21,7 +21,7 @@ on:
           - "prd"
 
 env:
-  TEAM_NAME: flight-data
+  TEAM_NAME: flight-data # This should altimately be retrieved from the repo metadata
   API_FOLDER: ${{ github.workspace }}/apis/${{ inputs.api }}
   SYSTEM_ACCOUNT: sa-flight-data-cp-admin
 
