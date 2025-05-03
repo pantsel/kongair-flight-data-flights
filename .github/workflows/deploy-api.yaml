@@ -54,11 +54,11 @@ jobs:
 
       - name: Export Spec and Run Tests
         run: |
-          SPEC_ID=$(yq eval '.spec.meta.id' ${{ inputs.inso_workspace }})
-          inso export spec $SPEC_ID -w ${{ inputs.inso_workspace }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
+          SPEC_ID=$(yq eval '.spec.meta.id' ${{ env.API_FOLDER }}/insomnia.yaml)
+          inso export spec $SPEC_ID -w ${{ env.API_FOLDER }}/insomnia.yaml -o ${{ env.BUILD_FOLDER }}/oas.yaml
           
           # Run unit tests
-          inso --ci run test $SPEC_ID -e local -w ${{ inputs.inso_workspace }} --verbose --reporter progress
+          inso --ci run test $SPEC_ID -e local -w ${{ env.API_FOLDER }}/insomnia.yaml --verbose --reporter progress
 
       - name: Run Contract Tests
         uses: schemathesis/action@v1
