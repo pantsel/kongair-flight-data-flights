@@ -38,48 +38,6 @@ env:
   DECK_CONFIG_OIDC_ISSUER: ${{ secrets.OIDC_ISSUER }} # To be used in the OIDC plugin template
 
 jobs:
-
-  # Run contract testing with SchemaThesis.
-  # The tests are based on the OpenAPI specifications of the services.
-  # contract-test:
-  #   name: Contract testing
-  #   runs-on: ubuntu-latest
-  #   environment: ${{ inputs.environment }}
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-go@v5
-  #       with:
-  #         go-version: 1.24
-  #     - uses: kong/setup-inso@v2
-  #       with:
-  #         inso-version: 11.0.2
-
-  #     - name: Start service
-  #       run: |
-  #         file="server"
-  #         port="8081"
-
-  #         make run file=${file} port=${port} nohup=true
-  #         echo $! > ./${file}.pid
-
-  #         sleep 2
-  #       working-directory: ${{ env.API_FOLDER }}
-
-  #     - name: Export Spec and Run Tests
-  #       run: |
-  #         SPEC_ID=$(yq eval '.spec.meta.id' ${{ env.INSOMNIA_FILE }})
-  #         inso export spec $SPEC_ID -w ${{ env.INSOMNIA_FILE }} -o ${{ env.BUILD_FOLDER }}/oas.yaml
-          
-  #         # Run unit tests
-  #         inso --ci run test $SPEC_ID -e local -w ${{ env.INSOMNIA_FILE }} --verbose
-
-  #     - name: Run Contract Tests
-  #       uses: schemathesis/action@v1
-  #       with:
-  #         schema: ${{ env.BUILD_FOLDER }}/oas.yaml
-  #         base-url: http://localhost:8081
-  #         args: '--experimental openapi-3.1 --exclude-checks=ignored_auth'
-  
   build:
     runs-on: ubuntu-latest
     # needs: contract-test

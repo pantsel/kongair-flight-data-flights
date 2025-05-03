@@ -4,6 +4,6 @@ patches:
   - selectors:
     - $.services[?(@.name=="routes-service")]
     values:
-      host: flight-data-routes-api.flight-data.svc.cluster.local
+      host: flight-data-routes-routes-api.flight-data.svc.cluster.local
       port: 8082
       protocol: http
