@@ -1,30 +1,29 @@
 type: spec.insomnia.rest/5.0
 name: Flights Service 0.1.0
 meta:
-  id: wrk_0fc4bf79958c42b1842f4a4cd296bb9d
-  created: 1746183695814
-  modified: 1746213099748
+  id: wrk_bb53a38ef84b49189c054b937d082f41
+  created: 1746272823954
+  modified: 1746272823954
 collection:
   - name: flight-data
     meta:
-      id: fld_3120712e0c414954b8ecf5a824620c72
-      created: 1746183963157
-      modified: 1746183963157
-      sortKey: -1746183963157
+      id: fld_55439d371a8f42f28e451fef423b9450
+      created: 1746272840870
+      modified: 1746272840870
+      sortKey: -1746272840870
     children:
       - url: "{{ _.base_url }}/health"
         name: Health check endpoint for Kubernetes
         meta:
-          id: req_bfbdda0dfe0a4cfe93e1304881b192cf
-          created: 1746183963158
-          modified: 1746183963158
+          id: req_24eb334d004e4154a1950c171d78b426
+          created: 1746272840870
+          modified: 1746272840870
           isPrivate: false
           description: Endpoint that returns the service health status.
-          sortKey: -1746183963158
+          sortKey: -1746272840870
         method: GET
         authentication:
           type: basic
-          useISO88591: false
           username: "{{ _.httpUsername }}"
           password: "{{ _.httpPassword }}"
         settings:
@@ -38,21 +37,20 @@ collection:
       - url: "{{ _.base_url }}/flights"
         name: Get KongAir planned flights
         meta:
-          id: req_e16391b3f8cd42f68104b7f1f381f627
-          created: 1746183963158
-          modified: 1746183963158
+          id: req_d44a8e017229493a8bd55e4f7b7d83c2
+          created: 1746272840870
+          modified: 1746272840870
           isPrivate: false
           description: |
             Returns all the scheduled flights for a given day
-          sortKey: -1746183963158
+          sortKey: -1746272840870
         method: GET
         parameters:
           - name: date
-            value: string
             disabled: true
+            value: string
         authentication:
           type: basic
-          useISO88591: false
           username: "{{ _.httpUsername }}"
           password: "{{ _.httpPassword }}"
         settings:
@@ -66,17 +64,16 @@ collection:
       - url: "{{ _.base_url }}/flights/{{ _.flightNumber }}"
         name: Get a specific flight by flight number
         meta:
-          id: req_5195952fce0c4a1ab02cabb393e1cbb4
-          created: 1746183963159
-          modified: 1746183963159
+          id: req_01888025e86f490cb16336bd4fc5b2b7
+          created: 1746272840871
+          modified: 1746272840871
           isPrivate: false
           description: |
             Returns a specific flight given its flight number
-          sortKey: -1746183963159
+          sortKey: -1746272840871
         method: GET
         authentication:
           type: basic
-          useISO88591: false
           username: "{{ _.httpUsername }}"
           password: "{{ _.httpPassword }}"
         settings:
@@ -90,16 +87,15 @@ collection:
       - url: "{{ _.base_url }}/flights/{{ _.flightNumber }}/details"
         name: Fetch more details about a flight
         meta:
-          id: req_d2769cedfae74c059cdbfe9de40b24f2
-          created: 1746183963159
-          modified: 1746184161077
+          id: req_90bb5b039ac746cfacdcdc8cf685c7d7
+          created: 1746272840871
+          modified: 1746272840871
           isPrivate: false
           description: Fetch more details about a flight
-          sortKey: -1746183963159
+          sortKey: -1746272840871
         method: GET
         authentication:
           type: basic
-          useISO88591: false
           username: "{{ _.httpUsername }}"
           password: "{{ _.httpPassword }}"
         settings:
@@ -113,26 +109,26 @@ collection:
 cookieJar:
   name: Default Jar
   meta:
-    id: jar_532c109ed30791b1c5a09f9f866a1aec09f029c2
-    created: 1746183701315
-    modified: 1746183701315
+    id: jar_fdda9b3917044bd4429e484b897c881666a30c41
+    created: 1746272823958
+    modified: 1746272823958
 environments:
   name: Base Environment
   meta:
-    id: env_532c109ed30791b1c5a09f9f866a1aec09f029c2
-    created: 1746183701219
-    modified: 1746183963154
+    id: env_fdda9b3917044bd4429e484b897c881666a30c41
+    created: 1746272823957
+    modified: 1746272840869
     isPrivate: false
   data:
     base_url: "{{ _.scheme }}://{{ _.host }}{{ _.base_path }}"
   subEnvironments:
     - name: OpenAPI env api.kong-air.com
       meta:
-        id: env_50c908779e7e4891975489734a789207
-        created: 1746183963156
-        modified: 1746183963156
+        id: env_155ad37a8c8d401583de9d2b1affb95e
+        created: 1746272840869
+        modified: 1746272840869
         isPrivate: false
-        sortKey: 1746183963156
+        sortKey: 1746272840869
       data:
         scheme: https
         host: api.kong-air.com
@@ -140,17 +136,17 @@ environments:
         httpPassword: password
     - name: local
       meta:
-        id: env_bc58d0e61f594c1fad88c45861b9080e
-        created: 1746191610680
-        modified: 1746212594447
+        id: env_5a0b050c97364f03881766595d0379f7
+        created: 1746272851233
+        modified: 1746272915723
         isPrivate: false
-        sortKey: 1746191610680
+        sortKey: 1746272851233
       data:
         scheme: http
         host: localhost:8081
         httpUsername: username
         httpPassword: password
-        flightNumber: KA0284
+        flightNumber: KD924
 spec:
   contents:
     openapi: 3.1.0
@@ -389,34 +385,33 @@ spec:
                       message:
                         type: string
   meta:
-    id: spc_7ec41358b377469190e0f1edcdc3741c
-    created: 1746183695819
-    modified: 1746213099746
+    id: spc_9963ae7cf2c34679a5489aa47443e867
+    created: 1746272823957
+    modified: 1746272831439
 testSuites:
-  - name: New Suite
+  - name: Tests
     meta:
-      id: uts_b5f18c8fb3674ebbabb87351326eba1a
-      created: 1746184272082
-      modified: 1746213000652
-      sortKey: -1746184272082
+      id: uts_e1d7dbe5e1e04ba7a36e8b4f28144b14
+      created: 1746272925964
+      modified: 1746272931267
+      sortKey: -1746272925964
     tests:
       - name: Returns 200
         meta:
-          id: ut_b0039eec00a3463d99ef1a9265214ddb
-          created: 1746184279092
-          modified: 1746184313450
-          sortKey: -1746184279092
-        requestId: req_e16391b3f8cd42f68104b7f1f381f627
+          id: ut_9e90201bf77044258322990d242d58f4
+          created: 1746272931335
+          modified: 1746272938746
+          sortKey: -1746272931335
+        requestId: req_d44a8e017229493a8bd55e4f7b7d83c2
         code: |-
           const response1 = await insomnia.send();
           expect(response1.status).to.equal(200);
       - name: Returns 200
         meta:
-          id: ut_87d8fabdbc59487c92a44a64003437fc
-          created: 1746184298135
-          modified: 1746184333913
-          sortKey: -1746184298135
-        requestId: req_bfbdda0dfe0a4cfe93e1304881b192cf
+          id: ut_0005582e9adb45cc9334edce5738a685
+          created: 1746272935948
+          modified: 1746272935948
+          sortKey: -1746272935948
         code: |-
           const response1 = await insomnia.send();
           expect(response1.status).to.equal(200);
