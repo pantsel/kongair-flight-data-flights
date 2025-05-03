@@ -9,7 +9,7 @@ add-plugins:
       tags:
         - platform
       config:
-        issuer: http://192.168.178.42:8080/realms/demo/.well-known/openid-configuration
+        issuer: ${{ env "DECK_CONFIG_OIDC_ISSUER"}}
         run_on_preflight: false
         consumer_optional: true
         display_errors: true
