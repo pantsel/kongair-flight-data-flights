@@ -60,7 +60,7 @@ jobs:
 
       - name: Build Config
         id: build
-        uses: ./.github/actions/build
+        uses: ./external-actions/build
         with:
           environment: ${{ inputs.environment }}
           api_folder: ${{ env.API_FOLDER }}
@@ -77,7 +77,7 @@ jobs:
         - name: Checkout repository
           uses: actions/checkout@v4
 
-        - uses: ./.github/actions/deploy
+        - uses: ./external-actions/deploy
           with:
             environment: ${{ inputs.environment }}
             api_folder: ${{ env.API_FOLDER }}

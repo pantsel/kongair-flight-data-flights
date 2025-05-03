@@ -1,1 +1,0 @@
-export GATEWAY_URL="http://localhost"
