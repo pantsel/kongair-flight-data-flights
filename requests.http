@@ -1,15 +1,20 @@
+##########################################################################
+# Sample HTTP requests for the Flight Service API
+# This file contains sample HTTP requests to test the Flight Service API.
+##########################################################################
+
 ## Check health of the service
-GET http://localhost:8080/health
+GET http://localhost:8081/health
 ###
 
 ## Get all flights
-GET http://localhost:8080/flights
+GET http://localhost:8081/flights
 ###
 
 ## Get flight by flight number
-GET http://localhost:8080/flights/KA0284
+GET http://localhost:8081/flights/KA0284
 ###
 
 ## Fetch more details about a flight
-GET http://localhost:8080/flights/KA0284/details
+GET http://localhost:8081/flights/KA0284/details
 ###
