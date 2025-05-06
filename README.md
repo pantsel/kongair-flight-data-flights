@@ -85,3 +85,29 @@ To promote the API to Konnect, you need to run the `promote-api.yaml` workflow. 
 act --input api=flights -W .github/workflows/promote-api.yaml
 ```
 
+### Flow
+```mermaid
+flowchart TD
+    A[Start: Build Config Action - Open API Spec] --> G[Lint OpenAPI Spec<br>deck file lint]
+    G --> H[Convert OAS to kong.yaml<br>deck file openapi2kong]
+    H --> I[Add API plugins<br>deck file add-plugins]
+    I --> J[Apply patches<br>deck file patch]
+    J --> L[Add platform plugins<br>deck file add-plugins]
+    L --> M[Apply platform patches<br>deck file patch]
+    M --> N[Add tags<br>deck file add-tags]
+    N --> O[Render config<br>deck file render]
+    O --> P[Lint config with Kong ruleset<br>deck file lint]
+    P --> R[Validate config<br>deck validate]
+    R --> S[Diff config with control plane<br>deck gateway diff]
+    S --> V[Get control plane backup<br>deck gateway dump]
+    V --> W[Sync config to control plane<br>deck gateway sync]
+    W --> X{Sync success?}
+    X -- Yes --> Y[Run contract tests]
+    X -- No --> AA[Rollback config]
+    Y --> Z{Tests success?}
+    Z -- Yes --> AB[Get fresh backup]
+    Z -- No --> AA
+    AB --> AC[End]
+    AA --> AC
+```
+
