@@ -8,7 +8,7 @@ info:
   title: Flights Service
 
 servers:
-- url: https://api.kong-air.com
+- url: https://kong-ee97234d24euq4eon.kongcloud.dev
   description: KongAir API Server
 
 components:
@@ -66,6 +66,7 @@ security:
 paths:
   /health:
     get:
+      operationId: health
       summary: Health check endpoint for Kubernetes
       description: Endpoint that returns the service health status.
       responses:

@@ -14,6 +14,7 @@ servers:
 
 security:
   - BasicAuth: []
+  - ApiKeyAuth: []
 
 paths:
   /health:
@@ -120,9 +121,13 @@ paths:
 
 components:
   securitySchemes:
-      BasicAuth:
-        type: http
-        scheme: basic
+    BasicAuth:
+      type: http
+      scheme: basic
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: apikey
   schemas:
     Route:
       type: object
