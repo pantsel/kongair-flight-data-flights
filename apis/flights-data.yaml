@@ -1,23 +1,23 @@
 type: spec.insomnia.rest/5.0
 schema_version: "5.1"
-name: Flights Service 0.1.0
+name: Flight Data v1.0.0
 meta:
-  id: wrk_ede9fc47b04942b2b1628fd8ea44396d
-  created: 1765362368979
-  modified: 1765363634521
+  id: wrk_e6f78bfe37c8426e901535c1e8e4225e
+  created: 1765363699789
+  modified: 1765363736527
   description: ""
 cookieJar:
   name: Default Jar
   meta:
-    id: jar_596ae6e32c3ffef450d1ed4b53abd64f5733f952
-    created: 1765362392082
-    modified: 1765362392082
+    id: jar_cd43a44cddc459c4f68ba0a268af84e839bb6836
+    created: 1765363699792
+    modified: 1765363699792
 environments:
   name: Base Environment
   meta:
-    id: env_596ae6e32c3ffef450d1ed4b53abd64f5733f952
-    created: 1765362368990
-    modified: 1765362368990
+    id: env_cd43a44cddc459c4f68ba0a268af84e839bb6836
+    created: 1765363699791
+    modified: 1765363699791
     isPrivate: false
 spec:
   contents:
@@ -264,6 +264,6 @@ spec:
                       message:
                         type: string
   meta:
-    id: spc_69691f88f352451e85354522ca79d428
-    created: 1765362368988
-    modified: 1765363634515
+    id: spc_e9d2ff94c3bb4972a9aae0142b4062ed
+    created: 1765363699791
+    modified: 1765363736526
