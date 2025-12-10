@@ -6,19 +6,184 @@ meta:
   created: 1765363945061
   modified: 1765363945061
   description: ""
+collection:
+  - name: Health
+    meta:
+      id: fld_68edba25b0a04ab392ba26d8e39952ac
+      created: 1765364114220
+      modified: 1765364114220
+      sortKey: -1765364114220
+      description: whatever
+    children:
+      - url: "{{ _.base_url }}/health"
+        name: Health check endpoint for Kubernetes
+        meta:
+          id: req_c4f7deec7e054a1ea90afb2b8be9172f
+          created: 1765364114221
+          modified: 1765364114221
+          isPrivate: false
+          description: Endpoint that returns the service health status.
+          sortKey: -1765364114221
+        method: GET
+        headers:
+          - name: apikey
+            value: "{{ _.apikey }}"
+            disabled: false
+        authentication:
+          type: basic
+          username: "{{ _.httpUsername }}"
+          password: "{{ _.httpPassword }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: flight-data
+    meta:
+      id: fld_a4ccdc2660c4440dac1c9151c73ad06d
+      created: 1765364114221
+      modified: 1765366729836
+      sortKey: -1765364114221
+      description: Information about available products.
+    children:
+      - url: "{{ _.base_url }}/flights"
+        name: Get KongAir planned flights
+        meta:
+          id: req_818342f7fb48461e8f0f173d80e1dc1b
+          created: 1765364114221
+          modified: 1765364114221
+          isPrivate: false
+          description: |
+            Returns all the scheduled flights for a given day
+          sortKey: -1765364114221
+        method: GET
+        parameters:
+          - name: date
+            value: string
+            disabled: true
+        headers:
+          - name: apikey
+            value: "{{ _.apikey }}"
+            disabled: false
+        authentication:
+          type: basic
+          username: "{{ _.httpUsername }}"
+          password: "{{ _.httpPassword }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/flights/{{ _.flightNumber }}"
+        name: Get a specific flight by flight number
+        meta:
+          id: req_4ae6625d63c0498494862fa0ee5a9e3a
+          created: 1765364114222
+          modified: 1765364114222
+          isPrivate: false
+          description: |
+            Returns a specific flight given its flight number
+          sortKey: -1765364114222
+        method: GET
+        headers:
+          - name: apikey
+            value: "{{ _.apikey }}"
+            disabled: false
+        authentication:
+          type: basic
+          username: "{{ _.httpUsername }}"
+          password: "{{ _.httpPassword }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/flights/{{ _.flightNumber }}/details"
+        name: Fetch more details about a flight
+        meta:
+          id: req_984f1689b348465c93928b22349d37a6
+          created: 1765364114222
+          modified: 1765366727245
+          isPrivate: false
+          description: Fetch more details about a flight
+          sortKey: -1765364114222
+        method: GET
+        headers:
+          - name: apikey
+            value: "{{ _.apikey }}"
+            disabled: false
+        authentication:
+          type: basic
+          username: "{{ _.httpUsername }}"
+          password: "{{ _.httpPassword }}"
+        scripts:
+          preRequest: "\n\n\n\n\n"
+          afterResponse: >+
+            
+            insomnia.test('Check if status is 200', () => {
+                insomnia.expect(insomnia.response.code).to.eql(200);
+            });
+
+
+
+            insomnia.test('Check response contains required keys', () => {
+            	
+            	const jsonBody = insomnia.response.json();
+
+            	insomnia.expect(jsonBody).to.have.all.keys('aircraft_type', 'flight_number', 'in_flight_entertainment', 'meal_options');
+
+
+            });
+
+
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
 cookieJar:
   name: Default Jar
   meta:
     id: jar_ce1c957e1539e2b52b7029b39f680602519fb667
     created: 1765363945066
-    modified: 1765363945066
+    modified: 1765366729832
 environments:
   name: Base Environment
   meta:
     id: env_ce1c957e1539e2b52b7029b39f680602519fb667
     created: 1765363945066
-    modified: 1765363945066
+    modified: 1765366729836
     isPrivate: false
+  data:
+    base_url: "{{ _.scheme }}://{{ _.host }}{{ _.base_path }}"
+  subEnvironments:
+    - name: OpenAPI env api.kong-air.com
+      meta:
+        id: env_32d663f172014a6887b2476823f75bae
+        created: 1765364114220
+        modified: 1765366729835
+        isPrivate: false
+        sortKey: 1765364114220
+      data:
+        scheme: https
+        base_path: ""
+        host: api.kong-air.com
+        apikey: apikey
+        httpUsername: username
+        httpPassword: password
+        flightNumber: KA0286
 spec:
   contents:
     openapi: 3.1.0
