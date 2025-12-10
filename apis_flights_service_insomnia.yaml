@@ -4,7 +4,7 @@ name: Flights Service 0.1.0
 meta:
   id: wrk_ede9fc47b04942b2b1628fd8ea44396d
   created: 1765362368979
-  modified: 1765363571553
+  modified: 1765363634521
   description: ""
 cookieJar:
   name: Default Jar
@@ -266,4 +266,4 @@ spec:
   meta:
     id: spc_69691f88f352451e85354522ca79d428
     created: 1765362368988
-    modified: 1765363571551
+    modified: 1765363634515
